@@ -1,0 +1,5 @@
+videos/*
+screenshots/*
+sample-specs/*
+
+.DS_Store

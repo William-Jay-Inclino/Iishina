@@ -1,0 +1,70 @@
+version: '3.1'
+
+services:
+  proxy:
+    image: nginx
+    volumes:
+      - ./templates:/etc/nginx/templates
+    ports:
+      - 80:80
+    depends_on:
+      - digitwin
+      - api
+
+    environment:
+      - NGINX_HOST=digitwin.local
+      - NGINX_PORT=80
+
+  db:
+    image: mariadb
+    restart: always
+    volumes:
+      - digitwin:/var/lib/mysql
+    environment:
+      TZ: Asia/Tokyo
+      MYSQL_ROOT_PASSWORD: D1g1tw2n4!
+      MYSQL_DATABASE: digitwindb
+      MYSQL_USER: digitwin
+      MYSQL_PASSWORD: D1g1tw2n4
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: rok/web2py:python3.7
+    restart: always
+    volumes:
+      - ./api:/opt/web2py/applications/digitwin
+    ports:
+      - 8090:8080
+      - 9090:9090
+    environment:
+      - TZ=Asia/Tokyo
+      - WEB2PY_PASSWORD=D1g1tw2n4!
+      - WEB2PY_ADMIN_SECURITY_BYPASS=true
+    depends_on:
+      - db
+
+  digitwin:
+    build:
+      context: .
+      dockerfile: Dockerfile.digitwin
+    restart: always
+    volumes:
+      - ./digitwin:/opt/digitwin
+    # stdin_open: true
+    # tty: true
+    ports:
+      - "3010:3010"
+    environment:
+      - TZ=Asia/Tokyo
+    depends_on:
+      - db
+      - api
+    links:
+      - "api:backend"
+
+volumes:
+  digitwin:
+
+
